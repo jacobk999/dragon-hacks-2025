@@ -1,9 +1,8 @@
 'use client';
-import { useScheduleState } from "../app/semester/store";
+
+import { useScheduleState } from "~/app/semester/store";
 import { parseCommand } from "./gemini";
-import { courseMap } from "../app/semester/courses";
-import { courses } from "../app/semester/courses";
-import type { CourseFilter } from "../app/semester/store";
+import { courseMap, courses } from "~/app/semester/courses";
 
 type ExecuteResponse = {
   success: boolean;

@@ -1,8 +1,7 @@
 // /src/lib/gemini.ts
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Replace with your actual API key (keep it here as requested) hh
-const genAI = new GoogleGenerativeAI("AIzaSyAIHF5l2ffeYGQI6wQ6nH73c9UxYsKry6o");
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY as string);
 
 type AIResponse = {
   intent: "removeCourse" | "removeSection" | "removeProfessor" | "addCourse" | "addSection" | "addProfessor";

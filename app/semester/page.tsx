@@ -12,7 +12,7 @@ import { MultipleCrossCancelDefault, PlusDefault, CheckTickSingle, SearchDefault
 import { Input } from "./components/input";
 import { useDebounce } from "use-debounce"
 import { Chip } from "./components/chip";
-import AIControls from "../../lib/AI-Controls";
+import { AiControls } from "./components/ai-controls";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/select";
 import { AnimatePresence, motion } from "motion/react";
 import { AiButton } from "./components/ai-button";
@@ -54,7 +54,7 @@ function AiModal() {
           </ModalTitle>
           <ModalClose tabIndex={-1} className="z-100"><MultipleCrossCancelDefault variant="stroke" /></ModalClose>
         </div>
-        <AIControls onOpenChange={setOpen} ref={ref} />
+        <AiControls onOpenChange={setOpen} ref={ref} />
       </ModalContent>
     </Modal >
   )

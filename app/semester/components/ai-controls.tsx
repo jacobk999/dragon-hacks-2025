@@ -1,10 +1,9 @@
-// packages/site/lib/AIControls.tsx
 'use client';
 
 import { ComponentProps, useState, useTransition } from 'react';
-import { useAIActions } from './ai-actions';  // adjust path if needed
+import { useAIActions } from '~/lib/ai-actions';
 
-export default function AIControls({ onOpenChange, ref }: { onOpenChange: (open: boolean) => void; } & ComponentProps<"textarea">) {
+export function AiControls({ onOpenChange, ref }: { onOpenChange: (open: boolean) => void; } & ComponentProps<"textarea">) {
 	const [prompt, setPrompt] = useState('');
 	const [isPending, startTransition] = useTransition();
 	const { execute } = useAIActions();
@@ -17,7 +16,6 @@ export default function AIControls({ onOpenChange, ref }: { onOpenChange: (open:
 		});
 	};
 
-	// TODO: maybe change this to modal or action button
 	return (
 		<>
 			<div className="absolute inset-0 bg-glass rounded-2xl" />

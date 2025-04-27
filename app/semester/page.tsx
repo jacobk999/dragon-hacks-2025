@@ -15,19 +15,49 @@ import { Chip } from "./components/chip";
 import AIControls from "../../lib/AI-Controls";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/select";
 import { AnimatePresence, motion } from "motion/react";
+import { AiButton } from "./components/ai-button";
+import { cn } from "~/lib/util";
 
-export default function SemesterBuilderPage() { 
+export default function SemesterBuilderPage() {
   return (
-    <div className="grid grid-cols-[1fr_5fr] h-full">
-      {/* TODO: add  ai purple button */}
-      <div className="absolute bottom-16 right-16 bg-indigo-400 h-24 w-24 z-10">AI</div>
+    <div className="grid grid-cols-[1fr_4fr] h-full">
       <Filters />
       <div className="flex flex-col h-full overflow-auto">
         <Schedules />
-        <AIControls />   {/* ← show the AI box under your schedules */}
+        <AiModal />
       </div >
     </div >
   );
+}
+
+function AiModal() {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLTextAreaElement>(null);
+
+  return (
+    <Modal
+      open={open}
+      onOpenChange={(open) => {
+        setOpen(open);
+        if (open) ref.current?.focus();
+      }}
+    >
+      <div className="flex absolute bottom-8 right-4 h-fit w-24 z-10">
+        <ModalTrigger asChild>
+          <AiButton>AI</AiButton>
+        </ModalTrigger>
+      </div>
+      <ModalContent>
+        <div className="flex items-start justify-between">
+          <ModalTitle>
+            Talk to Schedulino!
+          </ModalTitle>
+          <ModalClose tabIndex={-1} className="z-100"><MultipleCrossCancelDefault variant="stroke" /></ModalClose>
+        </div>
+        <AIControls onOpenChange={setOpen} ref={ref} />
+      </ModalContent>
+    </Modal >
+  )
 }
 
 function Filters() {
@@ -161,7 +191,7 @@ function Credits() {
   const updateMinCredits = useScheduleState((state) => state.updateMinCredits);
   const updateMaxCredits = useScheduleState((state) => state.updateMaxCredits);
 
-  return ( 
+  return (
     <div className="flex flex-col gap-2 w-full items-center">
       <p className="font-semibold">Credits</p>
       <div className="flex items-center w-full py-4 justify-evenly relative rounded-2xl bg-slate-300/15 overflow-hidden">
@@ -189,31 +219,31 @@ function CourseGroups() {
     <motion.div className="relative flex flex-col gap-2 rounded-2xl w-full">
       <motion.p className="text-center font-semibold">Course Groups</motion.p>
       <div className="flex flex-col gap-2 w-full items-center max-h-52 overflow-y-auto">
-      <AnimatePresence initial={false} key={groups.map(g => g.id).join(", ")}>
-        {groups.map((group, groupIndex) => {
-          return (
-            <motion.div
-              key={group.id}
-              layout
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="relative bg-slate-300/15 grid grid-cols-2 p-3 rounded-2xl gap-2 w-full"
-            >
-              <div className="absolute inset-0 bg-glass rounded-2xl" />
-              {group.courses.map((course, index) => <CourseSectionModal key={course.code} filter={course} group={groupIndex} index={index} />)}
-              <CourseSearchModal group={groupIndex} />
-            </motion.div>
-          );
-        })}
-      </AnimatePresence>
+        <AnimatePresence initial={false} key={groups.map(g => g.id).join(", ")}>
+          {groups.map((group, groupIndex) => {
+            return (
+              <motion.div
+                key={group.id}
+                layout
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="relative bg-slate-300/15 grid grid-cols-2 p-3 rounded-2xl gap-2 w-full"
+              >
+                <div className="absolute inset-0 bg-glass rounded-2xl" />
+                {group.courses.map((course, index) => <CourseSectionModal key={course.code} filter={course} group={groupIndex} index={index} />)}
+                <CourseSearchModal group={groupIndex} />
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
       </div>
-      <CourseSearchModal group={groups.length} />
+      <CourseSearchModal group={groups.length} className="h-11" />
     </motion.div>
   )
 }
 
-function CourseSearchModal({ group }: { group: number }) {
+function CourseSearchModal({ group, className }: { group: number; className?: string }) {
   const [query, setQuery] = useState("");
   const [debouncedQuery] = useDebounce(query, 100);
   const addCourse = useScheduleState((state) => state.addCourse);
@@ -227,11 +257,15 @@ function CourseSearchModal({ group }: { group: number }) {
   return (
     <Modal>
       <ModalTrigger onClick={() => searchRef.current?.focus()} asChild>
-        <motion.button layout type="button" className="bg-slate-400/20 hover:bg-slate-400/40 text-slate-600 transition-colors rounded-lg">
+        <motion.button
+          layout
+          type="button"
+          className={cn(className, "bg-slate-400/20 hover:bg-slate-400/40 text-slate-600 transition-colors rounded-2xl")}
+        >
           Add
         </motion.button>
       </ModalTrigger>
-      <ModalContent>
+      <ModalContent className="h-188">
         <div className="flex justify-between items-start">
           <div className="flex flex-col">
             <ModalTitle>Search Courses</ModalTitle>
@@ -242,7 +276,7 @@ function CourseSearchModal({ group }: { group: number }) {
         </div>
         <Input
           ref={searchRef}
-          className="w-full"
+          className="w-full shrink-0"
           type="text"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
@@ -250,26 +284,26 @@ function CourseSearchModal({ group }: { group: number }) {
         >
           <SearchDefault variant="stroke" className="size-4 text-slate-400" />
         </Input>
-        <div className="min-h-100 max-h-150 overflow-auto flex flex-col gap-1 items-start">
+        <div className="overflow-auto flex flex-col gap-1 items-start grow">
           {
             query.length !== 0 ? filteredCourses.length !== 0 ? filteredCourses
-            .map(({ item: course }) => (
-              <ModalClose
-                key={course.code}
-                onClick={() => addCourse({ code: course.code, sections: course.sections.map((section) => section.sec_code) }, group)}
-                className="w-full flex items-start p-2 rounded-lg hover:bg-slate-200 focus:bg-slate-300 outline-none transition-colors"
-              >
-                <p className="truncate text-nowrap">{course.code} {course.name}</p>
-              </ModalClose>
-            )) : <div className="h-100 w-full flex items-center justify-center text-slate-400/70">No matching results</div>
-          : <div className="h-100 w-full flex items-center justify-center text-slate-400/70">No course has been searched</div>}
+              .map(({ item: course }) => (
+                <ModalClose
+                  key={course.code}
+                  onClick={() => addCourse({ code: course.code, sections: course.sections.map((section) => section.sec_code) }, group)}
+                  className="w-full flex items-start p-2 rounded-lg hover:bg-slate-200 focus:bg-slate-300 outline-none transition-colors"
+                >
+                  <p className="truncate text-nowrap">{course.code} {course.name}</p>
+                </ModalClose>
+              )) : <div className="h-full w-full flex flex-col items-center justify-center text-slate-400/70">No matching results</div>
+              : <div className="h-full w-full flex flex-col items-center justify-center text-slate-400/70">No course has been searched</div>}
         </div>
       </ModalContent>
     </Modal >
   )
 }
 
-const MotionChip = motion(Chip);
+const MotionChip = motion.create(Chip);
 
 function CourseSectionModal({ filter, group, index }: { filter: CourseFilter; group: number; index: number; }) {
   const course = courseMap.get(filter.code)!;
@@ -325,22 +359,25 @@ function CourseSectionModal({ filter, group, index }: { filter: CourseFilter; gr
         <div className="w-full">
           <p>Selected Sections</p>
           <div className="flex gap-2 overflow-x-auto">
-            {filter.sections.map((section) => (
-              <Chip
-                key={section}
-                section={section}
-              >
-                <p className="font-mono">{section}</p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const newSections = filter.sections.filter((code) => code !== section);
-                    updateCourseSections(index, filter.code, newSections);
-                  }}>
-                  <MultipleCrossCancelDefault variant="stroke" />
-                </button>
-              </Chip>
-            ))}
+            <AnimatePresence>
+              {filter.sections.map((section) => (
+                <MotionChip
+                  layout
+                  key={section}
+                  section={section}
+                >
+                  <p className="font-mono">{section}</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newSections = filter.sections.filter((code) => code !== section);
+                      updateCourseSections(group, filter.code, newSections);
+                    }}>
+                    <MultipleCrossCancelDefault variant="stroke" />
+                  </button>
+                </MotionChip>
+              ))}
+            </AnimatePresence>
           </div>
         </div>
 
@@ -404,12 +441,12 @@ function CourseSectionModal({ filter, group, index }: { filter: CourseFilter; gr
               <button
                 key={section.sec_code}
                 type="button"
-                className={`flex items-center justify-between p-2 rounded-xl ${isSelected ? "bg-white/40" : ""} transition-colors`}
+                className={`flex items-center justify-between p-2 rounded-xl select-none hover:bg-white/60 ${isSelected ? "bg-white/40" : ""} transition-colors`}
                 onClick={() => {
                   const newSections = isSelected
                     ? filter.sections.filter((code) => code !== section.sec_code)
                     : [...filter.sections, section.sec_code];
-                  updateCourseSections(index, filter.code, newSections);
+                  updateCourseSections(group, filter.code, newSections);
                 }}
               >
                 <div className="text-left flex gap-2 items-center">
@@ -446,7 +483,7 @@ function Schedules() {
 
   return (
     <div className="px-4 py-6 flex flex-col gap-2">
-      <p>{schedules.length} Schedule{schedules.length > 1 ? "s" : ""}</p>
+      <p className="text-xl text-bold text-slate-500">{schedules.length} Schedule{schedules.length > 1 ? "s" : ""}</p>
       <AnimatePresence>
         {schedules.map((schedule) => {
           const scheduleId = schedule.courses.map((course) => `${course.code}-${course.section}`).join(",");

@@ -1,5 +1,5 @@
 import { Dialog } from "radix-ui";
-import { createContext, useContext, useState, type ComponentProps, type ReactNode } from "react";
+import { createContext, useContext, type ComponentProps, type ReactNode } from "react";
 import { cn } from "~/lib/util";
 import { AnimatePresence, motion } from "motion/react";
 import { useControlled } from "~/lib/hooks";
@@ -38,7 +38,7 @@ export function ModalContent({ children, className }: { children: ReactNode; cla
       {open && <Dialog.Portal forceMount>
         <Dialog.Overlay asChild>
           <motion.div
-            className="fixed inset-0 bg-black/10"
+            className="fixed inset-0 bg-black/10 z-30"
             variants={{
               open: {
                 opacity: 1,

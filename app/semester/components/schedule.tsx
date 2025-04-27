@@ -36,7 +36,9 @@ export function Schedule({ schedule }: { schedule: ScheduleRecord }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      layout className="flex flex-col p-2 gap-2 relative bg-slate-400/10 rounded-2xl">
+      layout
+      className="flex flex-col p-2 gap-2 relative bg-slate-400/10 rounded-2xl"
+    >
       <div className="absolute inset-0 bg-glass rounded-2xl" />
       <div className="text-slate-400 text-center font-semibold text-lg"><p>{schedule.credits} credits</p></div>
       <div className="w-full h-px bg-slate-300 my-1" />
@@ -173,9 +175,9 @@ function CourseCard({ course, time, className, style }: { course: ScheduleItem; 
       borderColor: `color-mix(in srgb, ${color} 80%, transparent)`,
       color: `color-mix(in srgb, ${color} 40%, black)`
     }} >
-      <p className="font-bold">{course.code} - {course.section}</p>
-      <div className="flex items-center gap-2">
-        <p className="truncate max-w-36 text-ellipsis">{course.instructors[0]}</p>
+      <p className="font-bold">{course.code} #{course.section}</p>
+      <div className="flex items-center gap-2 max-w-[calc(100%-12px)]">
+        <p className="truncate text-ellipsis">{course.instructors[0]}</p>
         <div className="h-1 w-1 rounded-full" style={{ backgroundColor: `color-mix(in srgb, ${color} 80%, black)` }} />
         {time.location && <p>{time.location}</p>}
       </div>

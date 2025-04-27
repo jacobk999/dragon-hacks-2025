@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 6, "column": 0}, "map": {"version":3,"sources":[],"names":[],"mappings":"","debugId":null}},
-    {"offset": {"line": 24, "column": 0}, "map": {"version":3,"sources":["file:///Users/mazinnadaf/Documents/GitHub/dragon-hacks-2025/packages/site/app/ai/page.tsx"],"sourcesContent":["export default function AiPage() {\r\n  return (\r\n    <div>i put a whole bag of jellybeans up my ass</div>\r\n  )\r\n}"],"names":[],"mappings":";;;;;AAAe,SAAS;IACtB,qBACE,qZAAC;kBAAI;;;;;;AAET","debugId":null}}]
-}

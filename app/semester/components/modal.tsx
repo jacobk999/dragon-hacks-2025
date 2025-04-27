@@ -1,27 +1,77 @@
 import { Dialog } from "radix-ui";
-import type { ComponentProps, ReactNode } from "react";
+import { createContext, useContext, useState, type ComponentProps, type ReactNode } from "react";
 import { cn } from "~/lib/util";
 import { AnimatePresence, motion } from "motion/react";
+import { useControlled } from "~/lib/hooks";
 
-export function Modal({ children, ...props }: ComponentProps<typeof Dialog.Root>) {
+const ModalContext = createContext({
+  open: false
+})
+
+export function Modal({
+  children,
+  open: controlledOpen,
+  onOpenChange: controlledOpenChange,
+  defaultOpen = false,
+  ...props }: ComponentProps<typeof Dialog.Root>) {
+  const [open, onOpenChange] = useControlled({
+    controlled: controlledOpen,
+    onChange: controlledOpenChange,
+    defaultValue: defaultOpen,
+  });
+
   return (
-    <Dialog.Root {...props}>
-      {children}
+    <Dialog.Root {...props} onOpenChange={onOpenChange}>
+      <ModalContext value={{ open }}>
+        {children}
+      </ModalContext>
     </Dialog.Root>
   )
 }
 
-export function ModalContent({ children }: { children: ReactNode }) {
+export function ModalContent({ children, className }: { children: ReactNode; className?: string }) {
+  const { open } = useContext(ModalContext);
+  const animationDuration = 0.1;
+
   return (
-    <AnimatePresence>
-      <Dialog.Portal>
-        <Dialog.Overlay asChild className="fixed inset-0 bg-black/10 backdrop-blur-[2px] transition-all">
-          <motion.div />
+    <AnimatePresence propagate>
+      {open && <Dialog.Portal forceMount>
+        <Dialog.Overlay asChild>
+          <motion.div
+            className="fixed inset-0 bg-black/10"
+            variants={{
+              open: {
+                opacity: 1,
+                backdropFilter: "blur(2px)",
+              },
+              closed: {
+                opacity: 0,
+                backdropFilter: "blur(0px)",
+              },
+            }}
+            initial="closed"
+            animate="open"
+            exit="closed"
+            transition={{ duration: animationDuration }}
+          />
         </Dialog.Overlay>
-        <Dialog.Content className="fixed left-[50%] top-[50%] z-50 w-full max-w-lg translate-x-[-50%] translate-y-[-50%] flex flex-col gap-4 bg-white/80 backdrop-blur-2xl p-6 shadow-lg rounded-2xl">
-          {children}
+        <Dialog.Content forceMount asChild>
+          <motion.div
+            variants={{
+              open: { opacity: 1, backdropFilter: "blur(40px)" },
+              closed: { opacity: 0, backdropFilter: "blur(0px)" },
+            }}
+            initial="closed"
+            animate="open"
+            exit="closed"
+            className={cn("fixed left-1/2 top-1/2 -translate-x-[50%] -translate-y-[50%] z-50 w-full max-w-lg flex flex-col gap-4 bg-white/80 p-6 shadow-lg rounded-2xl", className)}
+            transition={{ duration: animationDuration }}
+          >
+            {children}
+          </motion.div>
         </Dialog.Content>
       </Dialog.Portal >
+      }
     </AnimatePresence>
   )
 }

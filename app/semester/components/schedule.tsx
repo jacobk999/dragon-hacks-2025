@@ -1,7 +1,8 @@
 import { cn } from "~/lib/util";
 import { timeToMinutes, type ScheduleItem, type Schedule as ScheduleRecord, type ScheduleTime } from "../scheduler";
-import { CSSProperties } from "react";
+import type { CSSProperties } from "react";
 import { days } from "../store";
+import { motion } from "motion/react";
 
 export function Schedule({ schedule }: { schedule: ScheduleRecord }) {
   if (!schedule.courses.length) return <div>Hhh</div>;
@@ -31,17 +32,22 @@ export function Schedule({ schedule }: { schedule: ScheduleRecord }) {
   const timeRange = Array.from({ length: endTime - startTime }, (_, index) => startTime + index);
 
   return (
-    <div className="flex flex-col bg-gray-300 p-2 gap-2">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      layout className="flex flex-col p-2 gap-2 relative bg-slate-400/10">
+      <div className="absolute inset-0 bg-glass" />
       <div><p>{schedule.credits} credits</p></div>
-      <div className="pl-10 grid grid-cols-5">
+      <div className="pl-16 grid grid-cols-5 text-slate-500">
         <p className="col-start-1">Mon</p>
         <p className="col-start-2">Tues</p>
         <p className="col-start-3">Wed</p>
         <p className="col-start-4">Thurs</p>
         <p className="col-start-5">Fri</p>
       </div>
-      <div className="pl-10 grid grid-cols-5 h-150 relative overflow-hidden">
-        <div className="absolute h-full w-10">
+      <div className="pl-16 grid grid-cols-5 h-150 relative overflow-hidden">
+        <div className="absolute h-full w-16 text-slate-500">
           {timeRange.map((time) => (
             <p
               key={time}
@@ -50,24 +56,24 @@ export function Schedule({ schedule }: { schedule: ScheduleRecord }) {
                 top: `${(time - startTime) * 60 * minuteHeight}px`,
               }}
             >
-              {time === 12 ? 12 : time % 12}{time > 12 ? "pm" : "am"}
+              {time === 12 ? 12 : time % 12} {time > 12 ? "PM" : "AM"}
             </p>
           ))}
         </div>
         {timeRange.map((time) => (
           <div
             key={time}
-            className="absolute w-full h-px bg-slate-900"
+            className="absolute w-full h-px bg-slate-100/70"
             style={{ top: `${(time - startTime) * 60 * minuteHeight}px` }}
           />
         ))}
-        {schedule.courses.map((course) => course.times.map((time) => {
+        {schedule.courses.map((course) => course.times.map((time, index) => {
           const start = timeToMinutes(time.start);
           const end = timeToMinutes(time.end);
           const column = days.indexOf(time.day) + 1;
 
           return (
-            <div className="relative row-start-1" style={{ gridColumnStart: column }}>
+            <div key={`${course.code}-${time.day}-${index}`} className="relative row-start-1" style={{ gridColumnStart: column }}>
               <CourseCard
                 className="absolute w-full"
                 course={course}
@@ -81,7 +87,7 @@ export function Schedule({ schedule }: { schedule: ScheduleRecord }) {
           );
         }))}
       </div>
-    </div>
+    </motion.div>
   )
 }
 
@@ -160,23 +166,19 @@ function CourseCard({ course, time, className, style }: { course: ScheduleItem; 
   const color = colorForCourseNumber(course.code, course.department);
 
   return (
-    <div className={cn("flex flex-col gap-2 bg-red-200", className)} style={{
+    <div className={cn("flex flex-col justify-center items-center gap-1 border-l-6 rounded-2xl", className)} style={{
       ...style,
-      backgroundColor: color
+      backgroundColor: `color-mix(in srgb, ${color} 40%, transparent)`,
+      borderColor: `color-mix(in srgb, ${color} 80%, transparent)`,
+      color: `color-mix(in srgb, ${color} 40%, black)`
     }} >
-      <p>{course.code}</p>
-      <p>{course.instructors[0]}</p>
-      {time.location && <p>{time.location}</p>}
+      <p className="font-bold">{course.code} - {course.section}</p>
+      <div className="flex ">
+        <p>{course.instructors[0]}</p>
+        <div className="h-1 w-1 rounded-full" style={{ backgroundColor: color }} />
+        {time.location && <p>{time.location}</p>}
+      </div>
     </div>
   );
 }
 
-// function randomColor() {
-//   return CourseColors[Math.floor(Math.random() * CourseColors.length)];
-// }
-
-
-
-// const DepartmentColors: Record<string, string> = {
-//   CMSC: randomColor(),
-// };

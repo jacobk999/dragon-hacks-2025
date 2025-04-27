@@ -14,19 +14,25 @@ export default function AIControls() {
 		const res = await execute(prompt);
 		if (res.error) {
 			alert(`Error: ${res.error}`);
-		} else if (res.affectedItems?.length) {
+		} /*else if (res.affectedItems?.length) {
 			alert(res.affectedItems.join('\n'));
-		}
+		}*/
 		setPrompt('');
 		setIsProcessing(false);
 	};
 
 	return (
-		<div className="bg-white/80 p-4 rounded shadow mt-4">
-			<h2 className="text-lg font-semibold mb-2">AI Scheduler</h2>
+		<div className="bg-white/80 w-1/2 p-4 rounded shadow mt-4">
+			<h2 className="text-lg font-semibold mb-2">Talk to Schedulino! made with tears of celsius</h2>
 			<textarea
 				value={prompt}
 				onChange={(e) => setPrompt(e.target.value)}
+				onKeyDown={(e) => {
+					if (e.key === 'Enter' && !e.shiftKey) {
+						e.preventDefault();
+						handleSubmit();
+					}
+				}}
 				placeholder="e.g. Remove HISP200 or Drop section 0101"
 				className="w-full p-2 border rounded mb-2 h-24"
 			/>

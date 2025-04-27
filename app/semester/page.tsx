@@ -5,27 +5,22 @@ import { Modal, ModalClose, ModalContent, ModalTitle, ModalTrigger } from "./com
 import { type CourseFilter, useScheduleState } from "./store";
 import { courseFuse, courseMap } from "./courses";
 import { createSchedules } from "./scheduler";
-import type { TimeBlock } from "./store";
 import { days, type Day, type Time } from "./store";
 import { useMemo } from 'react';
-import { colorForCourseNumber, Schedule } from "./components/schedule";
+import { Schedule } from "./components/schedule";
 import { MultipleCrossCancelDefault, PlusDefault, CheckTickSingle, SearchDefault } from "./components/icons";
 import { Input } from "./components/input";
 import { useDebounce } from "use-debounce"
 import { Chip } from "./components/chip";
 import AIControls from "../../lib/AI-Controls";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/select";
+import { AnimatePresence, motion } from "motion/react";
 
 export default function SemesterBuilderPage() {
-  /*return (
+  return (
     <div className="grid grid-cols-[1fr_5fr] h-full">
       <Filters />
-      <Schedules />
-    </div>
-  )*/
-  return (
-    <div className="grid grid-cols-[1fr_4fr] h-full">
-      <Filters />
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full overflow-auto">
         <Schedules />
         <AIControls />   {/* ← show the AI box under your schedules */}
       </div >
@@ -38,9 +33,11 @@ function Filters() {
     <div className="relative">
       <div className="absolute top-0 left-0 h-full w-full bg-glass" />
       <div className="mx-auto max-w-64 flex flex-col items-center gap-4 py-8">
-        <Credits />
-        <TimeBlocks />
-        <CourseGroups />
+        <AnimatePresence>
+          <Credits />
+          <TimeBlocks />
+          <CourseGroups />
+        </AnimatePresence>
       </div>
     </div>
   );
@@ -74,76 +71,85 @@ function TimeBlocks() {
   const removeTimeBlock = useScheduleState((s) => s.removeTimeBlock);
 
   return (
-    <div className="flex flex-col gap-4 w-full items-center">
-
-      <div className="flex flex-col gap-4 w-full items-center max-h-84 overflow-y-auto">
-        {timeBlocks.map((tb: TimeBlock, idx: number) => (
-          <div key={idx} className="w-full rounded-2xl p-3 relative bg-slate-300/15">
-            <div className="absolute rounded-2xl inset-0 bg-glass" />
-            <p className="mb-2 text-slate-500 uppercase font-semibold text-sm">Time Block</p>
-            {/* Delete button */}
-            <button
-              type="button"
-              className="absolute top-2.5 right-2.5 text-sm"
-              onClick={() => removeTimeBlock(idx)}
+    <AnimatePresence>
+      <motion.div layout className="flex flex-col gap-4 w-full items-center">
+        <motion.p layout className="font-semibold">Time Blocks</motion.p>
+        <motion.div className="flex flex-col gap-4 w-full items-center max-h-84 overflow-y-auto">
+          {timeBlocks.map((timeBlock, index) => (
+            <motion.div
+              layout
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              key={timeBlock.id}
+              className="w-full rounded-2xl p-3 relative bg-slate-300/15"
             >
-              <MultipleCrossCancelDefault variant="stroke" className="size-6 text-slate-400 hover:text-red-400 transition-colors duration-250" />
-            </button>
-            {/* Day selectors */}
-            <div className="flex gap-2 justify-center w-full mb-2">
-              {days.map((d: Day) => (
-                <button
-                  key={d}
-                  type="button"
-                  className={`p-1 w-10 h-10 text-xs rounded-md ${tb.days.includes(d) ? "bg-slate-300 text-slate-700" : "bg-slate-100 text-slate-500"}`}
-                  onClick={() => {
-                    const has = tb.days.includes(d);
-                    const newDays = has
-                      ? tb.days.filter((x) => x !== d)
-                      : [...tb.days, d];
-                    updateTimeBlock(idx, { ...tb, days: newDays });
+              <div className="absolute rounded-2xl inset-0 bg-glass" />
+              <p className="mb-2 text-slate-500 uppercase font-semibold text-sm">Time Block</p>
+              {/* Delete button */}
+              <button
+                type="button"
+                className="absolute top-2.5 right-2.5 text-sm"
+                onClick={() => removeTimeBlock(index)}
+              >
+                <MultipleCrossCancelDefault variant="stroke" className="size-6 text-slate-400 hover:text-red-400 transition-colors duration-250" />
+              </button>
+              {/* Day selectors */}
+              <div className="flex gap-2 justify-center w-full mb-2">
+                {days.map((d: Day) => (
+                  <button
+                    key={d}
+                    type="button"
+                    className={`p-1 w-10 h-10 text-xs rounded-md ${timeBlock.days.includes(d) ? "bg-slate-300 text-slate-700" : "bg-slate-100 text-slate-500"}`}
+                    onClick={() => {
+                      const has = timeBlock.days.includes(d);
+                      const newDays = has
+                        ? timeBlock.days.filter((x) => x !== d)
+                        : [...timeBlock.days, d];
+                      updateTimeBlock(index, { ...timeBlock, days: newDays });
+                    }}
+                  >
+                    {d.slice(0, 1).toUpperCase()}{d.slice(1, 2).toLowerCase()}
+                  </button>
+                ))}
+              </div>
+              {/* Time inputs */}
+              <div className="flex flex-row gap-2">
+                <Input
+                  type="time"
+                  className="text-sm w-1/2"
+                  value={formatTimeInput(timeBlock.start)}
+                  onChange={(e) => {
+                    const newStart = parseTimeInput(e.target.value);
+                    updateTimeBlock(index, { ...timeBlock, start: newStart });
                   }}
-                >
-                  {d.slice(0, 1).toUpperCase()}{d.slice(1, 2).toLowerCase()}
-                </button>
-              ))}
-            </div>
-            {/* Time inputs */}
-            <div className="flex flex-row gap-2">
-              <Input
-                type="time"
-                className="text-sm w-1/2"
-                value={formatTimeInput(tb.start)}
-                onChange={(e) => {
-                  const newStart = parseTimeInput(e.target.value);
-                  updateTimeBlock(idx, { ...tb, start: newStart });
-                }}
-              />
-              <Input
-                type="time"
-                className="text-sm w-1/2"
-                value={formatTimeInput(tb.end)}
-                onChange={(e) => {
-                  const newEnd = parseTimeInput(e.target.value);
-                  updateTimeBlock(idx, { ...tb, end: newEnd });
-                }}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
+                />
+                <Input
+                  type="time"
+                  className="text-sm w-1/2"
+                  value={formatTimeInput(timeBlock.end)}
+                  onChange={(e) => {
+                    const newEnd = parseTimeInput(e.target.value);
+                    updateTimeBlock(index, { ...timeBlock, end: newEnd });
+                  }}
+                />
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
 
-      {/* Add new time block button */}
-      <button
-        type="button"
-        className="flex items-center justify-center w-full p-2 border-dashed border-2 border-slate-300 text-slate-300 hover:border-slate-400 hover:text-slate-400 hover:bg-slate-200 transition-colors rounded-2xl cursor-pointer text-xl"
-        onClick={() =>
-          addTimeBlock({ days: [], start: [8, 0, "Am"], end: [5, 0, "Pm"] })
-        }
-      >
-        <PlusDefault variant="stroke" />
-      </button>
-    </div>
+        {/* Add new time block button */}
+        <motion.button
+          layout
+          type="button"
+          className="flex items-center justify-center w-full p-2 border-dashed border-2 border-slate-300 text-slate-300 hover:border-slate-400 hover:text-slate-400 hover:bg-slate-200 transition-colors rounded-2xl cursor-pointer text-xl"
+          onClick={() => addTimeBlock({ days: [], start: [8, 0, "Am"], end: [5, 0, "Pm"] })
+          }
+        >
+          <PlusDefault variant="stroke" />
+        </motion.button>
+      </motion.div>
+    </AnimatePresence>
   );
 }
 
@@ -152,19 +158,23 @@ function Credits() {
   const updateMaxCredits = useScheduleState((state) => state.updateMaxCredits);
 
   return (
-    <div className="flex items-center w-full py-4 justify-evenly relative rounded-2xl bg-slate-300/15 overflow-hidden">
-      {/* <div key={idx} className="w-fit rounded-2xl p-3 relative bg-slate-300/15 overflow-hidden"> */}
-      <div className="absolute h-full w-full bg-glass top-0 left-0" />
-      <div className="flex flex-col items-center gap-1">
-        <label className="text-slate-500 uppercase font-semibold text-sm" htmlFor="minCredits">Min CR</label>
-        <Input className="w-fit [&_input]:w-16 [&_input]:h-16 [&_input]:text-center [&_input]:text-2xl" id="minCredits" type="number" min={1} max={20} defaultValue={1} onChange={(event) => updateMinCredits(+event.target.value)} />
-      </div>
+    <>
+      <p className="font-semibold">Credits</p>
+      <div className="flex items-center w-full py-4 justify-evenly relative rounded-2xl bg-slate-300/15 overflow-hidden">
 
-      <div className="flex flex-col items-center gap-1">
-        <label className="text-slate-500 uppercase font-semibold text-sm" htmlFor="maxCredits">Max CR</label>
-        <Input className="w-fit [&_input]:w-16 [&_input]:h-16 [&_input]:text-center [&_input]:text-2xl" id="maxCredits" type="number" min={1} max={20} onChange={(event) => updateMaxCredits(+event.target.value)} />
+        {/* <div key={idx} className="w-fit rounded-2xl p-3 relative bg-slate-300/15 overflow-hidden"> */}
+        <div className="absolute h-full w-full bg-glass top-0 left-0" />
+        <div className="flex flex-col items-center gap-1">
+          <label className="text-slate-500 uppercase font-semibold text-sm" htmlFor="minCredits">Min CR</label>
+          <Input className="w-fit [&_input]:w-16 [&_input]:h-16 [&_input]:text-center [&_input]:text-2xl" id="minCredits" type="number" min={1} max={20} defaultValue={1} onChange={(event) => updateMinCredits(+event.target.value)} />
+        </div>
+
+        <div className="flex flex-col items-center gap-1">
+          <label className="text-slate-500 uppercase font-semibold text-sm" htmlFor="maxCredits">Max CR</label>
+          <Input className="w-fit [&_input]:w-16 [&_input]:h-16 [&_input]:text-center [&_input]:text-2xl" id="maxCredits" type="number" min={1} max={20} onChange={(event) => updateMaxCredits(+event.target.value)} />
+        </div>
       </div>
-    </div>
+    </>
   )
 }
 
@@ -172,18 +182,28 @@ function CourseGroups() {
   const groups = useScheduleState((state) => state.courseGroups);
 
   return (
-    <div className="relative flex flex-col gap-4 rounded-2xl w-full">
-      {groups.map((group, groupIndex) => {
-        return (
-          <div key={groupIndex} className="relative bg-slate-300/15 grid grid-cols-2 p-3 rounded-2xl gap-2">
-            <div className="absolute inset-0 bg-glass rounded-2xl" />
-            {group.map((course, index) => <CourseSectionModal key={course.code} filter={course} group={groupIndex} index={index} />)}
-            <CourseSearchModal group={groupIndex} />
-          </div>
-        );
-      })}
+    <motion.div className="relative flex flex-col gap-4 rounded-2xl w-full">
+      <motion.p className="text-center font-semibold">Course Groups</motion.p>
+      <AnimatePresence initial={false} key={groups.map(g => g.id).join(", ")}>
+        {groups.map((group, groupIndex) => {
+          return (
+            <motion.div
+              key={group.id}
+              layout
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="relative bg-slate-300/15 grid grid-cols-2 p-3 rounded-2xl gap-2"
+            >
+              <div className="absolute inset-0 bg-glass rounded-2xl" />
+              {group.courses.map((course, index) => <CourseSectionModal key={course.code} filter={course} group={groupIndex} index={index} />)}
+              <CourseSearchModal group={groupIndex} />
+            </motion.div>
+          );
+        })}
+      </AnimatePresence>
       <CourseSearchModal group={groups.length} />
-    </div>
+    </motion.div>
   )
 }
 
@@ -194,16 +214,16 @@ function CourseSearchModal({ group }: { group: number }) {
 
   const searchRef = useRef<HTMLInputElement>(null);
 
-  // const courseGroups = useScheduleState((state) => state.courseGroups);
-
-  const filteredCourses = useMemo(() => courseFuse.search(debouncedQuery).slice(0, 20), [debouncedQuery])
-
-  // TODO: filter courses already in the list
+  const courseGroups = useScheduleState((state) => state.courseGroups);
+  const selectedCourses = useMemo(() => new Set(courseGroups.flatMap(g => g.courses).map((code) => code.code)), [courseGroups]);
+  const filteredCourses = useMemo(() => courseFuse.search(debouncedQuery).slice(0, 20).filter((course) => !selectedCourses.has(course.item.code)), [debouncedQuery, selectedCourses])
 
   return (
     <Modal>
-      <ModalTrigger onClick={() => searchRef.current?.focus()}>
-        Add
+      <ModalTrigger onClick={() => searchRef.current?.focus()} asChild>
+        <motion.button layout type="button">
+          Add
+        </motion.button>
       </ModalTrigger>
       <ModalContent>
         <div className="flex justify-between items-start">
@@ -231,7 +251,7 @@ function CourseSearchModal({ group }: { group: number }) {
                 <ModalClose
                   key={course.code}
                   onClick={() => addCourse({ code: course.code, sections: course.sections.map((section) => section.sec_code) }, group)}
-                  className="w-full flex items-start py-1 hover:bg-red-200 focus:bg-red-200 outline-none transition-colors"
+                  className="w-full flex items-start py-1 hover:bg-red-200 focus:bg-red-200 outline-none transition-colors duration-25"
                 >
                   <p className="truncate text-nowrap">{course.code} {course.name}</p>
                 </ModalClose>
@@ -243,9 +263,11 @@ function CourseSearchModal({ group }: { group: number }) {
   )
 }
 
+const MotionChip = motion(Chip);
+
 function CourseSectionModal({ filter, group, index }: { filter: CourseFilter; group: number; index: number; }) {
   const course = courseMap.get(filter.code)!;
-  const [instructorFilter, setInstructorFilter] = useState<string>("");
+  const [instructorFilter, setInstructorFilter] = useState<string>("all");
   const [onlineOnly, setOnlineOnly] = useState<boolean>(false);
 
   // Actions to update/remove selections in store (you'll need to add these to your store)
@@ -261,16 +283,21 @@ function CourseSectionModal({ filter, group, index }: { filter: CourseFilter; gr
 
   // Displayed = every section, optionally filtered by instructor
   const displayedSections = course.sections
-    .filter((sec) => instructorFilter ? sec.instructors.includes(instructorFilter) : true)
+    .filter((sec) => instructorFilter !== "all" ? sec.instructors.includes(instructorFilter) : true)
     .filter((sec) => onlineOnly ? sec.class_meetings.some((cm) => cm.OnlineSync !== undefined) : true);
-
 
   const displaySectionCodes = new Set(displayedSections.map((section) => section.sec_code));
 
-
   return (
     <Modal>
-      <Chip code={course.code} department={course.department}>
+      <MotionChip
+        layout
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        code={course.code}
+        department={course.department}
+      >
         <p>{course.code}</p>
         <ModalTrigger className="absolute inset-0" aria-label="Choose Sections" />
         <button
@@ -279,9 +306,9 @@ function CourseSectionModal({ filter, group, index }: { filter: CourseFilter; gr
         >
           <MultipleCrossCancelDefault variant="stroke" />
         </button>
-      </Chip>
+      </MotionChip>
 
-      <ModalContent>
+      <ModalContent className="h-150" >
         <div className="flex justify-between items-start mb-2">
           <ModalTitle>Course Sections</ModalTitle>
           <ModalClose>
@@ -289,19 +316,19 @@ function CourseSectionModal({ filter, group, index }: { filter: CourseFilter; gr
           </ModalClose>
         </div>
 
-        <div className="w-full overflow-auto">
+        <div className="w-full">
           <p>Selected Sections</p>
-          <div className="flex gap-2">
-            {displayedSections.map((section) => (
+          <div className="flex gap-2 overflow-x-auto">
+            {filter.sections.map((section) => (
               <Chip
-                key={section.sec_code}
-                section={section.sec_code}
+                key={section}
+                section={section}
               >
-                <p className="font-mono">{section.sec_code}</p>
+                <p className="font-mono">{section}</p>
                 <button
                   type="button"
                   onClick={() => {
-                    const newSections = filter.sections.filter((code) => code !== section.sec_code);
+                    const newSections = filter.sections.filter((code) => code !== section);
                     updateCourseSections(index, filter.code, newSections);
                   }}>
                   <MultipleCrossCancelDefault variant="stroke" />
@@ -312,34 +339,38 @@ function CourseSectionModal({ filter, group, index }: { filter: CourseFilter; gr
         </div>
 
         {/* Instructor dropdown */}
-        <div className="mb-4">
-          <label className="mr-2 text-sm">Instructor:</label>
-          <select
-            className="border p-1 rounded"
-            value={instructorFilter}
-            onChange={(e) => setInstructorFilter(e.target.value)}
-          >
-            <option value="">All</option>
-            {uniqueInstructors.map((inst) => (
-              <option key={inst} value={inst}>
-                {inst}
-              </option>
-            ))}
-          </select>
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-col items-start">
+            <label htmlFor="instructor">Instructor</label>
+            <Select
+              value={instructorFilter}
+              onValueChange={setInstructorFilter}
+            >
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent id="instructor">
+                <SelectItem value="all">All</SelectItem>
+                {uniqueInstructors.map((instructor) => (
+                  <SelectItem key={instructor} value={instructor}>
+                    {instructor}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <label className="flex items-center gap-1 text-sm">
             <input
               type="checkbox"
               checked={onlineOnly}
               onChange={() => setOnlineOnly((prev) => !prev)}
             />
-            <span>Online Only?</span>
+            <span>Online Only</span>
           </label>
         </div>
 
         {hasFilter && <div className="flex gap-2">
           <button
             type="button"
-            className="mb-4 text-sm underline"
+            className="text-sm underline"
             onClick={() => {
               updateCourseSections(group, filter.code, [...displaySectionCodes]);
             }}
@@ -348,7 +379,7 @@ function CourseSectionModal({ filter, group, index }: { filter: CourseFilter; gr
           </button>
           <button
             type="button"
-            className="mb-4 text-sm underline"
+            className="text-sm underline"
             onClick={() => {
               const newSections = filter.sections.filter((secCode) => !displaySectionCodes.has(secCode));
               updateCourseSections(group, filter.code, newSections);
@@ -359,7 +390,7 @@ function CourseSectionModal({ filter, group, index }: { filter: CourseFilter; gr
         </div>}
 
         {/* Section list with clickable codes and checkmark */}
-        <div className="flex flex-col gap-2 max-h-60 overflow-auto">
+        <div className="flex flex-col gap-2 overflow-auto">
           {displayedSections.map((section) => {
             const isSelected = filter.sections.includes(section.sec_code);
 
@@ -367,7 +398,7 @@ function CourseSectionModal({ filter, group, index }: { filter: CourseFilter; gr
               <button
                 key={section.sec_code}
                 type="button"
-                className="flex items-center justify-between"
+                className={`flex items-center justify-between p-2 rounded-xl ${isSelected ? "bg-white/40" : ""} transition-colors`}
                 onClick={() => {
                   const newSections = isSelected
                     ? filter.sections.filter((code) => code !== section.sec_code)
@@ -408,12 +439,14 @@ function Schedules() {
     return <p className="text-center text-gray-400 mt-12">No schedules satisfy your filters.</p>;
 
   return (
-    <div className="px-4 py-6 flex flex-col gap-2 overflow-auto">
-      <p>{schedules.length} Schedules</p>
-      {schedules.map((schedule) => {
-        const scheduleId = schedule.courses.map((course) => `${course.code}-${course.section}`).join(",");
-        return <Schedule key={scheduleId} schedule={schedule} />;
-      })}
+    <div className="px-4 py-6 flex flex-col gap-2">
+      <p>{schedules.length} Schedule{schedules.length > 1 ? "s" : ""}</p>
+      <AnimatePresence>
+        {schedules.map((schedule) => {
+          const scheduleId = schedule.courses.map((course) => `${course.code}-${course.section}`).join(",");
+          return <Schedule key={scheduleId} schedule={schedule} />;
+        })}
+      </AnimatePresence>
     </div>
   );
 }

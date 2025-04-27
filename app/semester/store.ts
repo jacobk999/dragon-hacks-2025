@@ -7,6 +7,7 @@ export type Day = typeof days[number];
 export type Time = [hour: number, minute: number, kind: "Am" | "Pm"];
 
 export type TimeBlock = {
+  id: string;
   days: Day[];
   start: Time;
   end: Time;
@@ -17,7 +18,10 @@ export type CourseFilter = {
   sections: string[];
 };
 
-export type CourseGroup = CourseFilter[];
+export type CourseGroup = {
+  id: string;
+  courses: CourseFilter[];
+}
 
 export interface State {
   timeBlocks: TimeBlock[];
@@ -34,7 +38,7 @@ type Action = {
   updateMinCredits: (minCredits: State["minCredits"]) => void;
   updateMaxCredits: (maxCredits: State["maxCredits"]) => void;
 
-  addTimeBlock: (tb: TimeBlock) => void;
+  addTimeBlock: (tb: Omit<TimeBlock, "id">) => void;
   updateTimeBlock: (idx: number, tb: TimeBlock) => void;
   removeTimeBlock: (idx: number) => void;
 
@@ -47,9 +51,15 @@ type Action = {
 
 }
 
+const randomId = () => {
+  if ('randomUUID' in crypto) return crypto.randomUUID();
+  const uint32 = window.crypto.getRandomValues(new Uint32Array(1))[0];
+  return uint32.toString(16);
+};
+
 export const useScheduleState = create<State & Action>((set) => ({
   timeBlocks: [],
-  addTimeBlock: (tb) => set((s) => ({ timeBlocks: [...s.timeBlocks, tb] })),
+  addTimeBlock: (tb) => set((s) => ({ timeBlocks: [...s.timeBlocks, { ...tb, id: randomId() }] })),
 
   updateTimeBlock: (idx, tb) =>
     set((s) => {
@@ -68,10 +78,10 @@ export const useScheduleState = create<State & Action>((set) => ({
   updateCourseSections: (groupIndex, code, sections) =>
     set((s) => {
       const groups = [...s.courseGroups];
-      const group = groups[groupIndex].map((cf) =>
+      const group = groups[groupIndex].courses.map((cf) =>
         cf.code === code ? { ...cf, sections } : cf
       );
-      groups[groupIndex] = group;
+      groups[groupIndex].courses = group;
       return { courseGroups: groups };
     }),
 
@@ -84,11 +94,12 @@ export const useScheduleState = create<State & Action>((set) => ({
 
   addCourse: (course, group) => set(({ courseGroups }) => {
     const copy = [...courseGroups];
+    const id = randomId();
 
     if (group >= copy.length) {
-      copy.push([course]);
+      copy.push({ id, courses: [course] });
     } else {
-      copy[group].push(course);
+      copy[group].courses.push(course);
     }
 
     return { courseGroups: copy }
@@ -97,8 +108,8 @@ export const useScheduleState = create<State & Action>((set) => ({
   removeCourse: (groupIndex, code) =>
     set((s) => {
       const groups = [...s.courseGroups];
-      groups[groupIndex] = groups[groupIndex].filter((cf) => cf.code !== code);
-      if (groups[groupIndex].length === 0) groups.splice(groupIndex, 1);
+      groups[groupIndex].courses = groups[groupIndex].courses.filter((cf) => cf.code !== code);
+      if (groups[groupIndex].courses.length === 0) groups.splice(groupIndex, 1);
       return { courseGroups: groups };
     }),
 

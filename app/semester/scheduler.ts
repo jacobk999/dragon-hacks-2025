@@ -29,7 +29,7 @@ export function createSchedules({
 }: State): Schedule[] {
   const sectionTimes = new Map<string, Interval[]>();
 
-  for (const courseFilter of courseGroups.flat()) {
+  for (const courseFilter of courseGroups.flatMap(({ courses }) => courses)) {
     const course = courseMap.get(courseFilter.code);
     if (!course) throw new Error(`Missing course: ${courseFilter.code}`);
 
@@ -89,7 +89,7 @@ export function createSchedules({
       return;
     }
 
-    for (const courseFilter of courseGroups[courseIndex]) {
+    for (const courseFilter of courseGroups[courseIndex].courses) {
       for (const selectedSection of courseFilter.sections) {
         const course = courseMap.get(courseFilter.code)!;
         const section = course?.sections.find((section) => section.sec_code === selectedSection)!;
@@ -156,7 +156,7 @@ export function createSchedules({
 type Interval = { start: number; end: number; }
 
 export function timeToMinutes(time: Time) {
-  let minutes = time[1];
+  const minutes = time[1];
   let hours = 0;
 
   if (time[2] === "Pm" && time[0] !== 12) {

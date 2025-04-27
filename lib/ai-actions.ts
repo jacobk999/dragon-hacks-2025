@@ -1,6 +1,8 @@
 'use client';
 import { useScheduleState } from "../app/semester/store";
 import { parseCommand } from "./gemini";
+import { courseMap } from "../app/semester/courses";
+import type { CourseFilter } from "../app/semester/store";
 
 type ExecuteResponse = {
   success: boolean;
@@ -33,14 +35,14 @@ export function useAIActions() {
           // Find all instances across groups
           const groupsToUpdate: Array<{ groupIndex: number, courseIndex: number }> = [];
           for (const [groupIndex, group] of state.courseGroups.entries()) {
-            const courseIndex = group.findIndex(c => c.code.toUpperCase() === searchCode);
+            const courseIndex = group.courses.findIndex(c => c.code.toUpperCase() === searchCode);
             if (courseIndex >= 0) {
               groupsToUpdate.push({ groupIndex, courseIndex });
             }
           }
 
           if (groupsToUpdate.length === 0) {
-            throw new Error(`Course ${parameters.courseCode} not found. Available courses: ${state.courseGroups.flatMap(g => g.map(c => c.code)).join(', ')
+            throw new Error(`Course ${parameters.courseCode} not found. Available courses: ${state.courseGroups.flatMap(g => g.courses.map(c => c.code)).join(', ')
               }`);
           }
 
@@ -60,7 +62,7 @@ export function useAIActions() {
 
           let found = false;
           for (const [groupIndex, group] of state.courseGroups.entries()) {
-            for (const course of group) {
+            for (const course of group.courses) {
               if (course.sections.includes(parameters.sectionCode)) {
                 updateCourseSections(
                   groupIndex,
@@ -74,6 +76,44 @@ export function useAIActions() {
           }
 
           if (!found) throw new Error(`Section ${parameters.sectionCode} not found in any course`);
+          break;
+        }
+
+        case "removeProfessor": {
+          if (!parameters.professor) throw new Error("No professor specified");
+          const prof = parameters.professor.trim().toLowerCase();
+
+          let totalRemoved = 0;
+
+
+          // Outer loop: each group with index
+          for (const [gIdx, group] of state.courseGroups.entries()) {
+            // Inner loop: each courseFilter in that group
+            for (const cf of group.courses) {
+              const record = courseMap.get(cf.code);
+              if (!record) continue;
+
+              // Build new section list excluding this professor
+              const keep = record.sections
+                .filter(sec =>
+                  !sec.instructors.some(i => i.toLowerCase() === prof)
+                )
+                .map(sec => sec.sec_code);
+
+              if (keep.length < cf.sections.length) {
+                updateCourseSections(gIdx, cf.code, keep);
+                totalRemoved += cf.sections.length - keep.length;
+              }
+            }
+          }
+
+          if (totalRemoved === 0) {
+            throw new Error(
+              `Professor "${parameters.professor}" not found on any section`
+            );
+          }
+
+          affected.push(`Removed ${totalRemoved} section(s) taught by ${parameters.professor}`);
           break;
         }
 

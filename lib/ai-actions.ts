@@ -2,6 +2,7 @@
 import { useScheduleState } from "../app/semester/store";
 import { parseCommand } from "./gemini";
 import { courseMap } from "../app/semester/courses";
+import { courses } from "../app/semester/courses";
 import type { CourseFilter } from "../app/semester/store";
 
 type ExecuteResponse = {
@@ -11,7 +12,7 @@ type ExecuteResponse = {
 };
 
 export function useAIActions() {
-  const { removeCourse, updateCourseSections } = useScheduleState();
+  const { removeCourse, updateCourseSections, addCourse, courseGroups } = useScheduleState();
 
   const execute = async (prompt: string): Promise<ExecuteResponse> => {
     try {
@@ -32,14 +33,16 @@ export function useAIActions() {
           const state = useScheduleState.getState();
           const searchCode = parameters.courseCode.toUpperCase().trim();
 
-          // Find all instances across groups
-          const groupsToUpdate: Array<{ groupIndex: number, courseIndex: number }> = [];
-          for (const [groupIndex, group] of state.courseGroups.entries()) {
-            const courseIndex = group.courses.findIndex(c => c.code.toUpperCase() === searchCode);
+            // Find all instances across groups (each group is a CourseFilter[])
+          const groupsToUpdate: { groupIndex: number; courseIndex: number }[] = [];
+          state.courseGroups.forEach((group, groupIndex) => {
+            const courseIndex = group.courses.findIndex(cf =>
+              cf.code.toUpperCase() === searchCode
+            );
             if (courseIndex >= 0) {
               groupsToUpdate.push({ groupIndex, courseIndex });
             }
-          }
+          });
 
           if (groupsToUpdate.length === 0) {
             throw new Error(`Course ${parameters.courseCode} not found. Available courses: ${state.courseGroups.flatMap(g => g.courses.map(c => c.code)).join(', ')
@@ -48,12 +51,12 @@ export function useAIActions() {
 
           // Remove from all groups containing it - using for...of
           for (const { groupIndex } of groupsToUpdate) {
-            removeCourse(groupIndex, parameters.courseCode);
+            removeCourse(groupIndex, searchCode/*parameters.courseCode*/);
           }
 
           return {
             success: true,
-            affectedItems: [`Removed ${parameters.courseCode} from ${groupsToUpdate.length} group(s)`]
+            affectedItems: [`Removed ${/*parameters.courseCode*/searchCode} from ${groupsToUpdate.length} group(s)`]
           };
         }
 
@@ -85,20 +88,21 @@ export function useAIActions() {
 
           let totalRemoved = 0;
 
-
           // Outer loop: each group with index
           for (const [gIdx, group] of state.courseGroups.entries()) {
             // Inner loop: each courseFilter in that group
             for (const cf of group.courses) {
               const record = courseMap.get(cf.code);
               if (!record) continue;
-
-              // Build new section list excluding this professor
-              const keep = record.sections
-                .filter(sec =>
-                  !sec.instructors.some(i => i.toLowerCase() === prof)
-                )
-                .map(sec => sec.sec_code);
+                // 2) allow partial (substring) matches on last name
+            const keep = cf.sections.filter(secCode => {
+                const rec = record.sections.find((s) => s.sec_code === secCode);
+                if (!rec) return false;
+                // drop any section where any instructor name includes prof
+                return !rec.instructors.some((i) =>
+                 i.toLowerCase().includes(prof)
+               );
+              });
 
               if (keep.length < cf.sections.length) {
                 updateCourseSections(gIdx, cf.code, keep);
@@ -116,6 +120,72 @@ export function useAIActions() {
           affected.push(`Removed ${totalRemoved} section(s) taught by ${parameters.professor}`);
           break;
         }
+
+        
+        case "addProfessor": {
+          if (!parameters.professor) throw new Error("No professor specified");
+          // normalize (strip titles, lowercase)
+          let prof = parameters.professor.trim().toLowerCase();
+        
+          let totalAdded = 0;
+          const groups = state.courseGroups;
+        
+          // for each group…
+          for (let gIdx = 0; gIdx < groups.length; gIdx++) {
+            const group = groups[gIdx];
+        
+            // for each courseFilter in that group…
+            for (const cf of group.courses) {
+              const record = courseMap.get(cf.code);
+              if (!record) continue;
+        
+              // find all section codes taught by this prof
+              const taughtByProf = record.sections
+                .filter(sec =>
+                  sec.instructors.some(i => i.toLowerCase().includes(prof))
+                )
+                .map(sec => sec.sec_code);
+        
+              // only add those not already present
+              const toAdd = taughtByProf.filter(secCode => !cf.sections.includes(secCode));
+              if (toAdd.length > 0) {
+                // merge old + new, preserving order
+                const newSections = [...cf.sections, ...toAdd];
+                updateCourseSections(gIdx, cf.code, newSections);
+                totalAdded += toAdd.length;
+              }
+            }
+          }
+        
+          if (totalAdded === 0) {
+            throw new Error(`No sections found for Professor "${parameters.professor}" in your current schedule`);
+          }
+          affected.push(`Added ${totalAdded} section(s) taught by ${parameters.professor}`);
+          break;
+        }
+
+        case "addCourse": {
+          if (!parameters.courseCode) throw new Error("No course specified");
+        
+          // Look up the full course record
+          const code = parameters.courseCode.toUpperCase().trim();
+
+          // Find the CourseRecord by code in the courses array
+          const record = courses.find(
+            (c) => c.code.toUpperCase() === code
+          );
+          if (!record) {
+            throw new Error(`Course ${code} not found in catalog`);
+          }
+          
+        
+          const sections = record.sections.map((s) => s.sec_code);
+        addCourse({ code, sections }, 0);
+        affected.push(`Added ${code} with ${sections.length} section(s)`);
+        break;
+        }
+        
+
 
         default:
           throw new Error(`Unsupported command: ${intent}`);

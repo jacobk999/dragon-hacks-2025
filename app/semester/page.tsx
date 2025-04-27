@@ -16,9 +16,11 @@ import AIControls from "../../lib/AI-Controls";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/select";
 import { AnimatePresence, motion } from "motion/react";
 
-export default function SemesterBuilderPage() {
+export default function SemesterBuilderPage() { 
   return (
     <div className="grid grid-cols-[1fr_5fr] h-full">
+      {/* TODO: add  ai purple button */}
+      <div className="absolute bottom-16 right-16 bg-indigo-400 h-24 w-24 z-10">AI</div>
       <Filters />
       <div className="flex flex-col h-full overflow-auto">
         <Schedules />
@@ -32,10 +34,12 @@ function Filters() {
   return (
     <div className="relative">
       <div className="absolute top-0 left-0 h-full w-full bg-glass" />
-      <div className="mx-auto max-w-64 flex flex-col items-center gap-4 py-8">
+      <div className="mx-auto max-w-64 flex flex-col items-center gap-4 py-4">
         <AnimatePresence>
           <Credits />
+          <div className="w-[80%] h-px bg-slate-300/60" />
           <TimeBlocks />
+          <div className="w-[80%] h-px bg-slate-300/60" />
           <CourseGroups />
         </AnimatePresence>
       </div>
@@ -72,7 +76,7 @@ function TimeBlocks() {
 
   return (
     <AnimatePresence>
-      <motion.div layout className="flex flex-col gap-4 w-full items-center">
+      <motion.div layout className="flex flex-col gap-2 w-full items-center">
         <motion.p layout className="font-semibold">Time Blocks</motion.p>
         <motion.div className="flex flex-col gap-4 w-full items-center max-h-84 overflow-y-auto">
           {timeBlocks.map((timeBlock, index) => (
@@ -157,8 +161,8 @@ function Credits() {
   const updateMinCredits = useScheduleState((state) => state.updateMinCredits);
   const updateMaxCredits = useScheduleState((state) => state.updateMaxCredits);
 
-  return (
-    <>
+  return ( 
+    <div className="flex flex-col gap-2 w-full items-center">
       <p className="font-semibold">Credits</p>
       <div className="flex items-center w-full py-4 justify-evenly relative rounded-2xl bg-slate-300/15 overflow-hidden">
 
@@ -174,7 +178,7 @@ function Credits() {
           <Input className="w-fit [&_input]:w-16 [&_input]:h-16 [&_input]:text-center [&_input]:text-2xl" id="maxCredits" type="number" min={1} max={20} onChange={(event) => updateMaxCredits(+event.target.value)} />
         </div>
       </div>
-    </>
+    </div>
   )
 }
 
@@ -182,8 +186,9 @@ function CourseGroups() {
   const groups = useScheduleState((state) => state.courseGroups);
 
   return (
-    <motion.div className="relative flex flex-col gap-4 rounded-2xl w-full">
+    <motion.div className="relative flex flex-col gap-2 rounded-2xl w-full">
       <motion.p className="text-center font-semibold">Course Groups</motion.p>
+      <div className="flex flex-col gap-2 w-full items-center max-h-52 overflow-y-auto">
       <AnimatePresence initial={false} key={groups.map(g => g.id).join(", ")}>
         {groups.map((group, groupIndex) => {
           return (
@@ -193,7 +198,7 @@ function CourseGroups() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="relative bg-slate-300/15 grid grid-cols-2 p-3 rounded-2xl gap-2"
+              className="relative bg-slate-300/15 grid grid-cols-2 p-3 rounded-2xl gap-2 w-full"
             >
               <div className="absolute inset-0 bg-glass rounded-2xl" />
               {group.courses.map((course, index) => <CourseSectionModal key={course.code} filter={course} group={groupIndex} index={index} />)}
@@ -202,6 +207,7 @@ function CourseGroups() {
           );
         })}
       </AnimatePresence>
+      </div>
       <CourseSearchModal group={groups.length} />
     </motion.div>
   )
@@ -221,7 +227,7 @@ function CourseSearchModal({ group }: { group: number }) {
   return (
     <Modal>
       <ModalTrigger onClick={() => searchRef.current?.focus()} asChild>
-        <motion.button layout type="button">
+        <motion.button layout type="button" className="bg-slate-400/20 hover:bg-slate-400/40 text-slate-600 transition-colors rounded-lg">
           Add
         </motion.button>
       </ModalTrigger>
@@ -242,21 +248,21 @@ function CourseSearchModal({ group }: { group: number }) {
           onChange={(event) => setQuery(event.target.value)}
           placeholder="MATH340"
         >
-          <SearchDefault variant="stroke" />
+          <SearchDefault variant="stroke" className="size-4 text-slate-400" />
         </Input>
-        <div className="min-h-100 overflow-auto flex flex-col gap-1 items-start">
+        <div className="min-h-100 max-h-150 overflow-auto flex flex-col gap-1 items-start">
           {
-            query.length !== 0 && filteredCourses
-              .map(({ item: course }) => (
-                <ModalClose
-                  key={course.code}
-                  onClick={() => addCourse({ code: course.code, sections: course.sections.map((section) => section.sec_code) }, group)}
-                  className="w-full flex items-start py-1 hover:bg-red-200 focus:bg-red-200 outline-none transition-colors duration-25"
-                >
-                  <p className="truncate text-nowrap">{course.code} {course.name}</p>
-                </ModalClose>
-              ))
-          }
+            query.length !== 0 ? filteredCourses.length !== 0 ? filteredCourses
+            .map(({ item: course }) => (
+              <ModalClose
+                key={course.code}
+                onClick={() => addCourse({ code: course.code, sections: course.sections.map((section) => section.sec_code) }, group)}
+                className="w-full flex items-start p-2 rounded-lg hover:bg-slate-200 focus:bg-slate-300 outline-none transition-colors"
+              >
+                <p className="truncate text-nowrap">{course.code} {course.name}</p>
+              </ModalClose>
+            )) : <div className="h-100 w-full flex items-center justify-center text-slate-400/70">No matching results</div>
+          : <div className="h-100 w-full flex items-center justify-center text-slate-400/70">No course has been searched</div>}
         </div>
       </ModalContent>
     </Modal >
@@ -347,7 +353,7 @@ function CourseSectionModal({ filter, group, index }: { filter: CourseFilter; gr
               onValueChange={setInstructorFilter}
             >
               <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent id="instructor">
+              <SelectContent id="instructor" className="">
                 <SelectItem value="all">All</SelectItem>
                 {uniqueInstructors.map((instructor) => (
                   <SelectItem key={instructor} value={instructor}>

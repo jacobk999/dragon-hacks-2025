@@ -21,9 +21,11 @@ export default function AIControls() {
 		setIsProcessing(false);
 	};
 
+	// TODO: maybe change this to modal or action button
 	return (
-		<div className="bg-white/80 w-1/2 p-4 rounded shadow mt-4">
-			<h2 className="text-lg font-semibold mb-2">Talk to Schedulino! made with tears of celsius</h2>
+		<div className="relative rounded-2xl bg-white/80 backdrop-blur-xl w-1/2 p-4 flex flex-col gap-2 mx-auto mb-4">
+			<div className="absolute inset-0 bg-glass rounded-2xl" />
+			<h2 className="text-lg text-slate-600">Talk to <span className="font-bold">Schedulino</span>! made with tears of celsius</h2>
 			<textarea
 				value={prompt}
 				onChange={(e) => setPrompt(e.target.value)}
@@ -33,14 +35,14 @@ export default function AIControls() {
 						handleSubmit();
 					}
 				}}
-				placeholder="e.g. Remove HISP200 or Drop section 0101"
-				className="w-full p-2 border rounded mb-2 h-24"
+				placeholder="e.g. Remove CMSC132, Drop section 0101, I dont want to take (Professor)"
+				className="w-full outline-none bg-white/60 rounded-xl resize-none p-2"
 			/>
 			<button
-				type="button" // Explicit type prop added
+				type="button"
 				onClick={handleSubmit}
 				disabled={isProcessing}
-				className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+				className="bg-slate-500/40 px-4 py-2 rounded-xl text-slate-700 hover:bg-slate-500 hover:text-slate-50 transition-colors"
 			>
 				{isProcessing ? 'Processing...' : 'Apply Changes'}
 			</button>

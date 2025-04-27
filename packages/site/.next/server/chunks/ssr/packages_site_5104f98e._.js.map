@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 6, "column": 0}, "map": {"version":3,"sources":[],"names":[],"mappings":"","debugId":null}},
+    {"offset": {"line": 24, "column": 0}, "map": {"version":3,"sources":["file:///Users/mazinnadaf/Documents/GitHub/dragon-hacks-2025/packages/site/app/page.tsx"],"sourcesContent":["export default function Home() {\n  return (\n    <div>Hello Frontend</div>\n  );\n}\n"],"names":[],"mappings":";;;;;AAAe,SAAS;IACtB,qBACE,qZAAC;kBAAI;;;;;;AAET","debugId":null}}]
+}

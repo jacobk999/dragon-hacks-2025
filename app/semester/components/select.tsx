@@ -13,7 +13,7 @@ export function SelectContent({ className, children, ...props }: ComponentProps<
       <SelectPrimitive.Content
         {...props}
         side="bottom"
-        className={cn("relative z-50 max-h-[--radix-select-content-available-height] min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-md shadow-md bg-white/80 backdrop-blur-lg", className)}
+        className={cn("relative z-50 max-h-[--radix-select-content-available-height] min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-xl shadow-md bg-white/30 backdrop-blur-lg shadow-md p-1", className)}
       >
         <SelectPrimitive.Viewport>
           {children}
@@ -27,7 +27,7 @@ export function SelectItem({ className, children, ...props }: ComponentProps<typ
   return (
     <SelectPrimitive.Item
       className={cn(
-        "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        "relative flex w-full cursor-pointer select-none items-center rounded-lg py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 hover:bg-white/40 transition-colors",
         className
       )}
       {...props}
@@ -43,5 +43,9 @@ export function SelectItem({ className, children, ...props }: ComponentProps<typ
   )
 }
 
-export const SelectTrigger = SelectPrimitive.Trigger;
+export function SelectTrigger({ className, ...props }: ComponentProps<typeof SelectPrimitive.Trigger>) {
+  return (
+    <SelectPrimitive.Trigger {...props} className={cn("bg-slate-400/20 border border-slate-300 text-slate-500 min-w-[150px] p-2 rounded-lg", className)}/>
+  );
+}
 export const SelectValue = SelectPrimitive.Value;

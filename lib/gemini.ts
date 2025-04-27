@@ -38,6 +38,17 @@ export async function parseCommand(prompt: string): Promise<AIResponse> {
           - "i don't want [NAME]"     → {intent:"removeProfessor",   parameters:{professor:"NAME"}}
           - "i don't want [COURSE_CODE]" → {intent:"removeCourse", parameters:{courseCode:"COURSE_CODE"}}
 
+          - "add [COURSE_CODE]" → {intent:"addCourse", parameters:{courseCode:"COURSE_CODE"}}
+          - "I want [COURSE_CODE]" → {intent:"addCourse", parameters:{courseCode:"COURSE_CODE"}}
+          - "add section [SECTION]" → {intent:"addSection", parameters:{sectionCode:"SECTION"}}
+          - "add [NAME]"     → {intent:"addProfessor",   parameters:{professor:"NAME"}}
+          - "add professor [NAME]"     → {intent:"addProfessor",   parameters:{professor:"NAME"}}
+          - "i want [NAME]"     → {intent:"addProfessor",   parameters:{professor:"NAME"}}
+          - "i want to take [NAME]"     → {intent:"addProfessor",   parameters:{professor:"NAME"}}
+          - "i want to take [COURSE_CODE]" → {intent:"addCourse", parameters:{courseCode:"COURSE_CODE"}}
+          - "give me [COURSE_CODE]" → {intent:"addCourse", parameters:{courseCode:"COURSE_CODE"}}
+          - "give me [NAME]"     → {intent:"addProfessor",   parameters:{professor:"NAME"}}
+
           EXAMPLE: "Remove MATH140" → {"intent":"removeCourse","parameters":{"courseCode":"MATH140"}}`
         }]
       }]

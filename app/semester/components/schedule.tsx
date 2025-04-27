@@ -36,17 +36,18 @@ export function Schedule({ schedule }: { schedule: ScheduleRecord }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      layout className="flex flex-col p-2 gap-2 relative bg-slate-400/10">
-      <div className="absolute inset-0 bg-glass" />
-      <div><p>{schedule.credits} credits</p></div>
-      <div className="pl-16 grid grid-cols-5 text-slate-500">
+      layout className="flex flex-col p-2 gap-2 relative bg-slate-400/10 rounded-2xl">
+      <div className="absolute inset-0 bg-glass rounded-2xl" />
+      <div className="text-slate-400 text-center font-semibold text-lg"><p>{schedule.credits} credits</p></div>
+      <div className="w-full h-px bg-slate-300 my-1" />
+      <div className="pl-16 grid grid-cols-5 gap-2 text-slate-500">
         <p className="col-start-1">Mon</p>
         <p className="col-start-2">Tues</p>
         <p className="col-start-3">Wed</p>
         <p className="col-start-4">Thurs</p>
         <p className="col-start-5">Fri</p>
       </div>
-      <div className="pl-16 grid grid-cols-5 h-150 relative overflow-hidden">
+      <div className="pl-16 grid grid-cols-5 gap-2 h-150 relative overflow-hidden">
         <div className="absolute h-full w-16 text-slate-500">
           {timeRange.map((time) => (
             <p
@@ -166,16 +167,16 @@ function CourseCard({ course, time, className, style }: { course: ScheduleItem; 
   const color = colorForCourseNumber(course.code, course.department);
 
   return (
-    <div className={cn("flex flex-col justify-center items-center gap-1 border-l-6 rounded-2xl", className)} style={{
+    <div className={cn("flex flex-col justify-center items-center border-l-6 rounded-2xl backdrop-blur-md", className)} style={{
       ...style,
       backgroundColor: `color-mix(in srgb, ${color} 40%, transparent)`,
       borderColor: `color-mix(in srgb, ${color} 80%, transparent)`,
       color: `color-mix(in srgb, ${color} 40%, black)`
     }} >
       <p className="font-bold">{course.code} - {course.section}</p>
-      <div className="flex ">
-        <p>{course.instructors[0]}</p>
-        <div className="h-1 w-1 rounded-full" style={{ backgroundColor: color }} />
+      <div className="flex items-center gap-2">
+        <p className="truncate max-w-36 text-ellipsis">{course.instructors[0]}</p>
+        <div className="h-1 w-1 rounded-full" style={{ backgroundColor: `color-mix(in srgb, ${color} 80%, black)` }} />
         {time.location && <p>{time.location}</p>}
       </div>
     </div>

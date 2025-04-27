@@ -118,10 +118,37 @@ export function createSchedules({
   }
 
   backtrack([], 0, 0);
-  // console.log("mazinnadaf");
-  // console.log(validSchedules);
 
-  validSchedules.sort((firstSchedule, secondSchedule) => secondSchedule.credits - firstSchedule.credits);
+  // Sorts by average day length
+  validSchedules.sort((a, b) => {
+    function totalDayLength(schedule: Schedule): number {
+      const dayMap = new Map<Day, { start: number; end: number }>();
+
+      for (const course of schedule.courses) {
+        for (const time of course.times) {
+          const minutesStart = timeToMinutes(time.start);
+          const minutesEnd = timeToMinutes(time.end);
+
+          const entry = dayMap.get(time.day);
+          if (entry) {
+            entry.start = Math.min(entry.start, minutesStart);
+            entry.end = Math.max(entry.end, minutesEnd);
+          } else {
+            dayMap.set(time.day, { start: minutesStart, end: minutesEnd });
+          }
+        }
+      }
+
+      let total = 0;
+      for (const { start, end } of dayMap.values()) {
+        total += (end - start);
+      }
+
+      return total;
+    }
+
+    return totalDayLength(a) - totalDayLength(b);
+  });
 
   return validSchedules;
 }

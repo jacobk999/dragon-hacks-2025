@@ -12,7 +12,7 @@ import { Schedule } from "./components/schedule";
 
 export default function SemesterBuilderPage() {
   return (
-    <div className="grid grid-cols-[1fr_2fr]">
+    <div className="grid grid-cols-[1fr_4fr] h-full">
       <Filters />
       <Schedules />
     </div>
@@ -21,9 +21,9 @@ export default function SemesterBuilderPage() {
 
 function Filters() {
   return (
-    <div className="flex flex-col">
-      <TimeBlocks />
+    <div className="bg-glass flex flex-col">
       <Credits />
+      <TimeBlocks />
       <CourseGroups />
     </div>
   );
@@ -57,7 +57,7 @@ function TimeBlocks() {
   const removeTimeBlock = useScheduleState((s) => s.removeTimeBlock);
 
   return (
-    <div className="flex gap-4">
+    <div className="flex flex-col gap-4">
       {timeBlocks.map((tb: TimeBlock, idx: number) => (
         <div key={idx} className="border rounded-lg p-3 relative w-40">
           {/* Delete button */}
@@ -133,13 +133,13 @@ function Credits() {
   const updateMaxCredits = useScheduleState((state) => state.updateMaxCredits);
 
   return (
-    <div>
-      <div>
+    <div className="grid grid-cols-2">
+      <div className="flex flex-col">
         <label>Min Credits</label>
         <input type="number" min={1} defaultValue={1} onChange={(event) => updateMinCredits(+event.target.value)} />
       </div>
 
-      <div>
+      <div className="flex flex-col">
         <label>Max Credits</label>
         <input type="number" min={1} onChange={(event) => updateMaxCredits(+event.target.value)} />
       </div>
@@ -356,10 +356,10 @@ function Schedules() {
     }), [timeBlocks, minCredits, maxCredits, courseGroups]);
 
   if (!schedules.length)
-    return <p className="text-center text-gray-400 mt-12">No schedules satisfy your filters.</p>;
+    return <p className="text-center text-gray-400 mt-12 h-full">No schedules satisfy your filters.</p>;
 
   return (
-    <div className="px-4 py-6 bg-slate-100 flex flex-col gap-2 ">
+    <div className="px-4 py-6 flex flex-col gap-2 h-full">
       <p>{schedules.length} Schedules</p>
       {schedules.map((schedule) => {
         const scheduleId = schedule.courses.map((course) => `${course.code}-${course.section}`).join(",");

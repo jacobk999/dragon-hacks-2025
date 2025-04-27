@@ -54,6 +54,13 @@ export function Schedule({ schedule }: { schedule: ScheduleRecord }) {
             </p>
           ))}
         </div>
+        {timeRange.map((time) => (
+          <div
+            key={time}
+            className="absolute w-full h-px bg-slate-900"
+            style={{ top: `${(time - startTime) * 60 * minuteHeight}px` }}
+          />
+        ))}
         {schedule.courses.map((course) => course.times.map((time) => {
           const start = timeToMinutes(time.start);
           const end = timeToMinutes(time.end);

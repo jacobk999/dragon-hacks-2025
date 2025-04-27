@@ -105,3 +105,4 @@ export const useScheduleState = create<State & Action>((set) => ({
   updateMinCredits: (minCredits) => set(() => ({ minCredits })),
   updateMaxCredits: (maxCredits) => set(() => ({ maxCredits })),
 }))
+

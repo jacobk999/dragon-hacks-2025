@@ -36,5 +36,10 @@ export const courses: CourseRecord[] = departments.flatMap((department) => depar
 export const courseMap: Map<string, CourseRecord> = new Map(courses.map((course) => [course.code, course]));
 
 export const courseFuse = new Fuse(courses, {
-  keys: ["code", "name"]
+  keys: ["code", "name"],
+  includeScore: false,
+  shouldSort: true,
+  isCaseSensitive: false,
+  threshold: 0.3,
+  ignoreLocation: true,
 });

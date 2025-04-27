@@ -141,7 +141,8 @@ export const CourseColors: string[] = [
 ];
 
 // Randomization of color based on num
-export function colorForCourseNumber(courseNumber: number): string {
+export function colorForCourseNumber(code: string, department: string): string {
+  const courseNumber = +code.slice(department.length);
   // 1.  Force into unsigned 32-bit range.
   const n = courseNumber >>> 0;
 
@@ -156,8 +157,7 @@ export function colorForCourseNumber(courseNumber: number): string {
 
 
 function CourseCard({ course, time, className, style }: { course: ScheduleItem; time: ScheduleTime; className?: string; style?: CSSProperties; }) {
-  const courseNumber = +course.code.slice(course.department.length);
-  let color = colorForCourseNumber(courseNumber);
+  const color = colorForCourseNumber(course.code, course.department);
 
   return (
     <div className={cn("flex flex-col gap-2 bg-red-200", className)} style={{

@@ -1,10 +1,31 @@
 {
-  "name": "dragon-hacks-2025",
-  "version": "1.0.0",
-  "description": "",
-  "type": "module",
-  "scripts": {
-    "site": "pnpm --filter site",
-    "api": "pnpm --filter api"
-  }
+	"name": "schedulino",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"dev": "next dev --turbopack",
+		"build": "next build",
+		"start": "next start",
+		"lint": "next lint"
+	},
+	"dependencies": {
+		"@ai-sdk/google": "^1.2.13",
+		"@google/generative-ai": "^0.24.0",
+		"ai": "^4.3.10",
+		"fuse.js": "^7.1.0",
+		"next": "15.3.1",
+		"radix-ui": "^1.3.4",
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0",
+		"tailwind-merge": "^3.2.0",
+		"zustand": "^5.0.3"
+	},
+	"devDependencies": {
+		"@tailwindcss/postcss": "^4",
+		"@types/node": "^20",
+		"@types/react": "^19",
+		"@types/react-dom": "^19",
+		"tailwindcss": "^4",
+		"typescript": "^5"
+	}
 }

@@ -4,6 +4,7 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "site": "pnpm --filter site",
+    "api": "pnpm --filter api"
   }
 }

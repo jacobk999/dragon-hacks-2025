@@ -33,7 +33,7 @@ export function useAIActions() {
           const state = useScheduleState.getState();
           const searchCode = parameters.courseCode.toUpperCase().trim();
 
-            // Find all instances across groups (each group is a CourseFilter[])
+          // Find all instances across groups (each group is a CourseFilter[])
           const groupsToUpdate: { groupIndex: number; courseIndex: number }[] = [];
           state.courseGroups.forEach((group, groupIndex) => {
             const courseIndex = group.courses.findIndex(cf =>
@@ -94,14 +94,14 @@ export function useAIActions() {
             for (const cf of group.courses) {
               const record = courseMap.get(cf.code);
               if (!record) continue;
-                // 2) allow partial (substring) matches on last name
-            const keep = cf.sections.filter(secCode => {
+              // 2) allow partial (substring) matches on last name
+              const keep = cf.sections.filter(secCode => {
                 const rec = record.sections.find((s) => s.sec_code === secCode);
                 if (!rec) return false;
                 // drop any section where any instructor name includes prof
                 return !rec.instructors.some((i) =>
-                 i.toLowerCase().includes(prof)
-               );
+                  i.toLowerCase().includes(prof)
+                );
               });
 
               if (keep.length < cf.sections.length) {
@@ -121,31 +121,31 @@ export function useAIActions() {
           break;
         }
 
-        
+
         case "addProfessor": {
           if (!parameters.professor) throw new Error("No professor specified");
           // normalize (strip titles, lowercase)
           let prof = parameters.professor.trim().toLowerCase();
-        
+
           let totalAdded = 0;
           const groups = state.courseGroups;
-        
+
           // for each group…
           for (let gIdx = 0; gIdx < groups.length; gIdx++) {
             const group = groups[gIdx];
-        
+
             // for each courseFilter in that group…
             for (const cf of group.courses) {
               const record = courseMap.get(cf.code);
               if (!record) continue;
-        
+
               // find all section codes taught by this prof
               const taughtByProf = record.sections
                 .filter(sec =>
                   sec.instructors.some(i => i.toLowerCase().includes(prof))
                 )
                 .map(sec => sec.sec_code);
-        
+
               // only add those not already present
               const toAdd = taughtByProf.filter(secCode => !cf.sections.includes(secCode));
               if (toAdd.length > 0) {
@@ -156,7 +156,7 @@ export function useAIActions() {
               }
             }
           }
-        
+
           if (totalAdded === 0) {
             throw new Error(`No sections found for Professor "${parameters.professor}" in your current schedule`);
           }
@@ -166,7 +166,7 @@ export function useAIActions() {
 
         case "addCourse": {
           if (!parameters.courseCode) throw new Error("No course specified");
-        
+
           // Look up the full course record
           const code = parameters.courseCode.toUpperCase().trim();
 
@@ -177,14 +177,14 @@ export function useAIActions() {
           if (!record) {
             throw new Error(`Course ${code} not found in catalog`);
           }
-          
-        
+
+
           const sections = record.sections.map((s) => s.sec_code);
-        addCourse({ code, sections }, 0);
-        affected.push(`Added ${code} with ${sections.length} section(s)`);
-        break;
+          addCourse({ code, sections }, courseGroups.length);
+          affected.push(`Added ${code} with ${sections.length} section(s)`);
+          break;
         }
-        
+
 
 
         default:

@@ -101,7 +101,7 @@ export function createSchedules({
           department: course.department,
           times: section.class_meetings.flatMap((meeting) => {
             if (meeting.InPerson) {
-              return classTimeToTimeArray(meeting.InPerson.classtime, meeting.InPerson.location.join(""));
+              return classTimeToTimeArray(meeting.InPerson.classtime, meeting.InPerson.location ? meeting.InPerson.location.join("") : "N/A");
             } else if (meeting.OnlineSync) {
               return classTimeToTimeArray(meeting.OnlineSync);
             } else {

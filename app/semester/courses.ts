@@ -15,7 +15,7 @@ export type SectionRecord = {
   sec_code: string;
   instructors: string[],
   class_meetings: {
-    InPerson?: { classtime: ClassTime, location: string[] },
+    InPerson?: { classtime: ClassTime, location?: string[] },
     OnlineSync?: ClassTime
   }[]
 }
